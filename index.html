@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Comunidade Ninho - Protótipo</title>
+
+    <!-- Carregando React, ReactDOM, Babel e Tailwind via CDN para rodar no navegador -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonte Serifada para dar o tom de acolhimento -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9F6F0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Merriweather', serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animações customizadas */
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.4;
+            }
+        }
+
+        .animate-breathe {
+            animation: breathe 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Ícones SVG simplificados (para não depender de bibliotecas externas neste arquivo único)
+        const Icons = {
+            Home: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+            Heart: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>,
+            BookOpen: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>,
+            User: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+            Battery: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2" /><line x1="22" x2="22" y1="11" y2="13" /></svg>,
+            BatteryLow: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2" /><line x1="22" x2="22" y1="11" y2="13" /><line x1="6" x2="6" y1="11" y2="13" /></svg>,
+            BatteryFull: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2" /><line x1="22" x2="22" y1="11" y2="13" /><line x1="6" x2="18" y1="11" y2="13" /></svg>,
+            Flower2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5" /><path d="M12 7.5V9" /><path d="M7.5 12H9" /><path d="M16.5 12H15" /><path d="M12 16.5V15" /><path d="M8 8l1.5 1.5" /><path d="M14.5 14.5L16 16" /><path d="M8 16l1.5-1.5" /><path d="M14.5 9.5L16 8" /></svg>,
+            Sun: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>,
+            Check: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+            X: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 18 18" /></svg>,
+            Wind: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" /><path d="M9.6 4.6A2 2 0 1 1 11 8H2" /><path d="M12.6 19.4A2 2 0 1 0 14 16H2" /></svg>,
+            Send: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
+            MessageCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z" /></svg>,
+            Download: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>,
+            Edit3: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+        };
+
+        const CommunityApp = () => {
+            const [activeTab, setActiveTab] = React.useState('home');
+            const [mood, setMood] = React.useState(null);
+            const [gardenLevel, setGardenLevel] = React.useState(30);
+            const [showSOS, setShowSOS] = React.useState(false);
+            const [showBreathing, setShowBreathing] = React.useState(false);
+            const [completedTasks, setCompletedTasks] = React.useState([]);
+            const [journalEntry, setJournalEntry] = React.useState('');
+            const [savedEntries, setSavedEntries] = React.useState([]);
+
+            // Carregar dados salvos (Simulação)
+            React.useEffect(() => {
+                const saved = localStorage.getItem('ninho_entries');
+                if (saved) setSavedEntries(JSON.parse(saved));
+            }, []);
+
+            const saveJournal = () => {
+                if (!journalEntry.trim()) return;
+                const newEntries = [{ id: Date.now(), text: journalEntry, date: new Date().toLocaleDateString() }, ...savedEntries];
+                setSavedEntries(newEntries);
+                localStorage.setItem('ninho_entries', JSON.stringify(newEntries));
+                setJournalEntry('');
+                alert("Pensamento salvo no seu diário!");
+            };
+
+            const downloadData = () => {
+                const data = {
+                    user: "Sophia",
+                    moodHistory: mood,
+                    gardenLevel: gardenLevel,
+                    journal: savedEntries
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "meus_dados_ninho.json";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+
+            const toggleTask = (taskId) => {
+                if (completedTasks.includes(taskId)) {
+                    setCompletedTasks(completedTasks.filter(id => id !== taskId));
+                    setGardenLevel(prev => Math.max(0, prev - 10));
+                } else {
+                    setCompletedTasks([...completedTasks, taskId]);
+                    setGardenLevel(prev => Math.min(100, prev + 10));
+                }
+            };
+
+            // Dados e Temas
+            const theme = {
+                bg: "bg-[#F9F6F0]",
+                surface: "bg-white",
+                primary: "text-[#5D4037]",
+                secondary: "text-[#8D7B68]",
+                accent: "bg-[#A0B99B]",
+                alert: "bg-[#D8A7A0]",
+            };
+
+            const rituals = {
+                low: { title: "Ritual de Acolhimento", color: "bg-[#FBEBE9]", icon: <Icons.BatteryLow className="text-[#D8A7A0]" />, tasks: [{ id: 1, text: "Beba água", time: "2 min" }, { id: 2, text: "Lave só o copo", time: "5 min" }] },
+                neutral: { title: "Ritual de Manutenção", color: "bg-[#FFF9E5]", icon: <Icons.Battery className="text-[#C4AE78]" />, tasks: [{ id: 3, text: "Arrume a cama", time: "3 min" }, { id: 4, text: "Alongamento", time: "5 min" }] },
+                high: { title: "Ritual de Renovação", color: "bg-[#E3EBE2]", icon: <Icons.BatteryFull className="text-[#6E8E66]" />, tasks: [{ id: 5, text: "Destralhe 1 gaveta", time: "15 min" }, { id: 6, text: "Planeje a semana", time: "10 min" }] }
+            };
+
+            // Modal de Respiração
+            const BreathingModal = () => (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+                    <div className="text-center text-white">
+                        <div className="w-32 h-32 bg-[#A0B99B] rounded-full mx-auto mb-8 animate-breathe blur-xl absolute left-0 right-0 m-auto"></div>
+                        <div className="w-32 h-32 bg-[#A0B99B] rounded-full mx-auto mb-8 animate-breathe relative z-10 flex items-center justify-center">
+                            <Icons.Wind className="w-12 h-12 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-serif mb-2">Inspire... Expire...</h2>
+                        <p className="opacity-80 mb-8">Siga o ritmo para acalmar</p>
+                        <button onClick={() => setShowBreathing(false)} className="px-6 py-2 border border-white rounded-full hover:bg-white/20">Fechar</button>
+                    </div>
+                </div>
+            );
+
+            // Conteúdo Home
+            const renderHome = () => (
+                <div className="space-y-6 pb-20 animate-in fade-in duration-500">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className={`text-sm ${theme.secondary}`}>Bom dia, Sophia</p>
+                            <h1 className={`text-2xl font-serif ${theme.primary} font-bold`}>Como está seu coração?</h1>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-[#E3EBE2] border-2 border-white flex items-center justify-center text-[#5D4037] font-bold">S</div>
+                    </div>
+
+                    <div className="flex gap-2 p-1 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        {['low', 'neutral', 'high'].map(m => (
+                            <button key={m} onClick={() => setMood(m)} className={`flex-1 py-3 rounded-xl flex flex-col items-center gap-1 transition-all ${mood === m ? 'bg-[#F9F6F0] shadow-inner' : 'hover:bg-gray-50'}`}>
+                                {m === 'low' && <Icons.BatteryLow className={`w-6 h-6 ${mood === m ? 'text-[#D8A7A0]' : 'text-gray-300'}`} />}
+                                {m === 'neutral' && <Icons.Battery className={`w-6 h-6 ${mood === m ? 'text-[#C4AE78]' : 'text-gray-300'}`} />}
+                                {m === 'high' && <Icons.BatteryFull className={`w-6 h-6 ${mood === m ? 'text-[#A0B99B]' : 'text-gray-300'}`} />}
+                                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">{m === 'low' ? 'Exausta' : m === 'neutral' ? 'Normal' : 'Animada'}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {mood && (
+                        <div className={`p-6 rounded-3xl ${rituals[mood].color} relative overflow-hidden transition-all`}>
+                            <div className="flex justify-between mb-4 relative z-10">
+                                <h2 className={`text-xl font-serif ${theme.primary}`}>{rituals[mood].title}</h2>
+                                <div className="bg-white/50 p-2 rounded-full">{rituals[mood].icon}</div>
+                            </div>
+                            <div className="space-y-3 relative z-10">
+                                {rituals[mood].tasks.map(task => (
+                                    <div key={task.id} onClick={() => toggleTask(task.id)} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${completedTasks.includes(task.id) ? 'bg-white/40' : 'bg-white/90'}`}>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${completedTasks.includes(task.id) ? 'bg-[#5D4037] border-[#5D4037]' : 'border-[#D4C5B0]'}`}>
+                                            {completedTasks.includes(task.id) && <Icons.Check className="w-3 h-3 text-white" />}
+                                        </div>
+                                        <span className={`text-sm flex-1 ${completedTasks.includes(task.id) ? 'line-through opacity-50' : ''}`}>{task.text}</span>
+                                        <span className="text-[10px] opacity-50 bg-black/5 px-2 py-1 rounded-full">{task.time}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <Icons.Flower2 className="absolute -bottom-8 -right-8 w-40 h-40 opacity-5 rotate-12" />
+                        </div>
+                    )}
+
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="flex justify-between items-end mb-4">
+                            <h3 className={`font-serif ${theme.primary} text-lg`}>Seu Jardim</h3>
+                            <span className="text-xs bg-[#E3EBE2] text-[#5D4037] px-3 py-1 rounded-full">Nível {Math.floor(gardenLevel / 10)}</span>
+                        </div>
+                        <div className="h-32 bg-[#F9F6F0] rounded-2xl relative flex items-end justify-center overflow-hidden">
+                            <div className="transition-all duration-1000 ease-out text-[#A0B99B]" style={{ transform: `scale(${0.5 + (gardenLevel / 200)})` }}>
+                                <Icons.Flower2 size={80} strokeWidth={1.5} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onClick={() => setShowSOS(true)} className={`${theme.alert} w-full py-4 rounded-2xl text-white font-medium shadow-lg shadow-[#D8A7A0]/30 flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform`}>
+                        <Icons.Heart className="w-5 h-5 fill-white animate-pulse" /> SOS: Preciso de ajuda
+                    </button>
+                </div>
+            );
+
+            // Render Journey (Agora com Diário)
+            const renderJourney = () => (
+                <div className="space-y-6 pb-20 animate-in slide-in-from-right">
+                    <h2 className={`text-2xl font-serif ${theme.primary}`}>Sua Jornada</h2>
+
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Icons.Edit3 className="w-5 h-5 text-[#C4AE78]" />
+                            <h3 className="font-serif text-lg text-[#5D4037]">Diário da Gratidão</h3>
+                        </div>
+                        <textarea
+                            value={journalEntry}
+                            onChange={(e) => setJournalEntry(e.target.value)}
+                            placeholder="Pelo que você é grata hoje?"
+                            className="w-full p-4 bg-[#F9F6F0] rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#C4AE78]"
+                            rows="3"
+                        ></textarea>
+                        <button onClick={saveJournal} className="w-full py-2 bg-[#C4AE78] text-white rounded-xl text-sm font-medium hover:bg-[#b39d69]">Salvar Pensamento</button>
+
+                        {savedEntries.length > 0 && (
+                            <div className="mt-6 space-y-3">
+                                <h4 className="text-xs font-bold uppercase text-gray-400">Suas notas recentes</h4>
+                                {savedEntries.slice(0, 3).map(entry => (
+                                    <div key={entry.id} className="p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border-l-2 border-[#C4AE78]">
+                                        <p className="mb-1">{entry.text}</p>
+                                        <span className="text-[10px] text-gray-400">{entry.date}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-white p-4 rounded-2xl shadow-sm opacity-50">
+                        <h4 className="font-medium text-[#5D4037]">Módulo 0: Boas-vindas</h4>
+                        <p className="text-xs text-gray-400">Concluído</p>
+                    </div>
+                </div>
+            );
+
+            // Render Profile
+            const renderProfile = () => (
+                <div className="space-y-6 pb-20 animate-in slide-in-from-right">
+                    <h2 className={`text-2xl font-serif ${theme.primary}`}>Seu Perfil</h2>
+                    <div className="bg-white p-6 rounded-3xl shadow-sm flex items-center gap-4">
+                        <div className="w-16 h-16 bg-[#E3EBE2] rounded-full flex items-center justify-center text-2xl font-serif text-[#5D4037]">S</div>
+                        <div>
+                            <h3 className="font-bold text-[#5D4037]">Sophia</h3>
+                            <p className="text-xs text-[#8D7B68]">Membro Fundadora</p>
+                        </div>
+                    </div>
+
+                    <button onClick={downloadData} className="w-full p-4 bg-white rounded-2xl shadow-sm text-left flex items-center gap-3 hover:bg-gray-50 border border-gray-100">
+                        <div className="bg-[#E3EBE2] p-2 rounded-full"><Icons.Download className="w-5 h-5 text-[#5D4037]" /></div>
+                        <div>
+                            <span className="block text-sm font-medium text-[#5D4037]">Baixar Meus Dados</span>
+                            <span className="text-xs text-gray-400">Salvar histórico do jardim e diário</span>
+                        </div>
+                    </button>
+                </div>
+            );
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen bg-[#F9F6F0] relative shadow-2xl overflow-hidden">
+                    {showBreathing && <BreathingModal />}
+
+                    {/* SOS Modal */}
+                    {showSOS && (
+                        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm animate-in fade-in">
+                            <div className="bg-white w-full max-w-md rounded-t-3xl p-6 animate-in slide-in-from-bottom">
+                                <div className="flex justify-between items-center mb-6">
+                                    <div className="flex items-center gap-2 text-[#5D4037] font-serif font-bold text-xl">
+                                        <Icons.Heart className="text-[#D8A7A0] fill-[#D8A7A0]" /> Apoio
+                                    </div>
+                                    <button onClick={() => setShowSOS(false)}><Icons.X className="text-gray-400" /></button>
+                                </div>
+                                <button onClick={() => setShowBreathing(true)} className="w-full p-4 bg-[#E3EBE2] rounded-2xl mb-3 flex items-center gap-3 text-left">
+                                    <Icons.Wind className="text-[#6E8E66]" />
+                                    <div>
+                                        <h3 className="font-bold text-[#5D4037]">Respirar Agora</h3>
+                                        <p className="text-xs text-[#8D7B68]">Acalme a ansiedade em 30 segundos</p>
+                                    </div>
+                                </button>
+                                <button className="w-full p-4 bg-[#FBEBE9] rounded-2xl flex items-center gap-3 text-left">
+                                    <Icons.Home className="text-[#D8A7A0]" />
+                                    <div>
+                                        <h3 className="font-bold text-[#5D4037]">Visita Chegando</h3>
+                                        <p className="text-xs text-[#8D7B68]">Onde esconder a bagunça rápido</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="p-6">
+                        {activeTab === 'home' && renderHome()}
+                        {activeTab === 'journey' && renderJourney()}
+                        {activeTab === 'profile' && renderProfile()}
+                    </main>
+
+                    {/* Bottom Nav */}
+                    <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-100 px-6 py-3 pb-6 flex justify-between items-center z-40">
+                        <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-[#5D4037]' : 'text-gray-300'}`}>
+                            <Icons.Home className={activeTab === 'home' ? 'fill-current' : ''} />
+                            <span className="text-[10px] font-medium">Ninho</span>
+                        </button>
+                        <button onClick={() => setActiveTab('journey')} className={`flex flex-col items-center gap-1 ${activeTab === 'journey' ? 'text-[#5D4037]' : 'text-gray-300'}`}>
+                            <Icons.BookOpen className={activeTab === 'journey' ? 'fill-current' : ''} />
+                            <span className="text-[10px] font-medium">Jornada</span>
+                        </button>
+                        <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-[#5D4037]' : 'text-gray-300'}`}>
+                            <Icons.User className={activeTab === 'profile' ? 'fill-current' : ''} />
+                            <span className="text-[10px] font-medium">Perfil</span>
+                        </button>
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CommunityApp />);
+    </script>
+</body>
+
+</html>
